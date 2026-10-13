@@ -303,8 +303,11 @@ def estilizar_por_vendedor(df_mostrar, etiquetas):
 @st.cache_resource
 def conectar_google_sheets():
 
-    gc = gspread.service_account(
-        filename="credentials.json"
+    # Cargar las credenciales directamente desde st.secrets
+    credentials_dict = dict(st.secrets["gcp_service_account"])
+
+    gc = gspread.service_account_from_dict(
+        credentials_dict
     )
 
     spreadsheet = gc.open_by_key(
@@ -318,8 +321,6 @@ def conectar_google_sheets():
     hoja_hija = spreadsheet.worksheet(
         HOJA_HIJA
     )
-
-    return spreadsheet, hoja_padre, hoja_hija
 
 
 # ============================================================
