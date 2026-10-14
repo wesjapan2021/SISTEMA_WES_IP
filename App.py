@@ -1655,7 +1655,7 @@ else:
 
 
 # ============================================================
-# MÉTRICAS
+# MÉTRICAS ORIGINALES
 # ============================================================
 
 st.markdown("---")
@@ -1674,24 +1674,9 @@ m2.metric(
     f"{numero_ventas:,}"
 )
 
-m3.metric(
-    "💵 TOTAL PAGADO",
-    f"Q {total_pagado:,.2f}"
-)
-
-m4.metric(
-    "📉 SALDO PENDIENTE",
-    f"Q {total_saldo:,.2f}"
-)
-
-m5.metric(
-    "📦 TOTAL PIEZAS",
-    f"{total_piezas:,}"
-)
-
 
 # ============================================================
-# ESTILO AUTOMÁTICO MODO OSCURO / CLARO PARA LAS TABLAS
+# ESTILO MODO OSCURO / CLARO PARA LAS TABLAS (SOLICITADO)
 # ============================================================
 
 st.markdown("""
@@ -1704,38 +1689,49 @@ st.markdown("""
 
 
 # ============================================================
-# TABLA PRINCIPAL: PERIODO DE VENTAS ACTIVAS
+# PERIODO DE VENTAS ACTIVAS
 # ============================================================
 
-st.markdown("### 📁 PERIODO DE VENTAS ACTIVAS")
+st.markdown("---")
 
-df_mostrar_ventas = df_filtrado.copy()
+st.markdown(
+    "📁 **PERIODO DE VENTAS ACTIVAS**"
+)
 
-if "FECHA" in df_mostrar_ventas.columns:
+df_mostrar = df_filtrado.copy()
 
-    df_mostrar_ventas["FECHA"] = (
-        df_mostrar_ventas["FECHA"]
+if "FECHA" in df_mostrar.columns:
+
+    df_mostrar["FECHA"] = (
+        df_mostrar["FECHA"]
         .dt.strftime("%d/%m/%Y")
         .fillna("")
     )
 
-etiquetas_ventas = {
+etiquetas_por_fila = {
     idx: row.get("VENDEDOR ETIQUETA", ETIQUETA_SIN_VENDEDOR)
-    for idx, row in df_mostrar_ventas.iterrows()
+    for idx, row in df_mostrar.iterrows()
 }
 
 st.dataframe(
-    estilizar_por_vendedor(df_mostrar_ventas, etiquetas_ventas),
+    estilizar_por_vendedor(
+        df_mostrar,
+        etiquetas_por_fila
+    ),
     use_container_width=True,
     hide_index=True
 )
 
 
 # ============================================================
-# TABLA SECUNDARIA: DETALLE DE VENTAS
+# DETALLE DE VENTAS
 # ============================================================
 
-st.markdown("### 📦 DETALLE DE VENTAS")
+st.markdown("---")
+
+st.markdown(
+    "📦 **DETALLE DE VENTAS**"
+)
 
 df_mostrar_detalle = df_detalle_filtrado.copy()
 
@@ -1755,11 +1751,16 @@ if not df_mostrar_detalle.empty:
     }
 
     st.dataframe(
-        estilizar_por_vendedor(df_mostrar_detalle, etiquetas_detalle),
+        estilizar_por_vendedor(
+            df_mostrar_detalle,
+            etiquetas_detalle
+        ),
         use_container_width=True,
         hide_index=True
     )
 
 else:
 
-    st.info("No hay registros detallados para los filtros seleccionados.")
+    st.info(
+        "No hay registros detallados para los filtros seleccionados."
+    )
