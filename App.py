@@ -258,16 +258,6 @@ def estilizar_por_vendedor(df_mostrar, etiquetas):
 
     def estilo_fila(fila):
 
-        etiqueta = etiquetas.get(
-            fila.name,
-            ETIQUETA_SIN_VENDEDOR
-        )
-
-        color = COLORES_VENDEDOR.get(
-            etiqueta,
-            COLOR_SIN_VENDEDOR
-        )
-
         estilos = []
 
         for columna in fila.index:
@@ -275,17 +265,15 @@ def estilizar_por_vendedor(df_mostrar, etiquetas):
             if columna in ("VENDEDOR", "NOMBRE VENDEDOR"):
 
                 estilos.append(
-                    f"background-color: {color}; "
-                    f"color: {color_texto_contraste(color)}; "
-                    f"font-weight: bold"
+                    "color: var(--text-color); "
+                    "font-weight: bold"
                 )
 
             else:
 
                 estilos.append(
-                    f"background-color: {color}22; "
-                    f"color: {color}; "
-                    f"font-weight: 600"
+                    "color: var(--text-color); "
+                    "font-weight: 600"
                 )
 
         return estilos
@@ -297,17 +285,14 @@ def estilizar_por_vendedor(df_mostrar, etiquetas):
 
 
 # ============================================================
-# CONEXIÓN GOOGLE SHEETS (Compatible con Streamlit Cloud)
+# CONEXIÓN GOOGLE SHEETS
 # ============================================================
 
 @st.cache_resource
 def conectar_google_sheets():
 
-    # Cargamos el diccionario desde los secretos seguros de Streamlit
-    credentials_dict = dict(st.secrets["gcp_service_account"])
-
-    gc = gspread.service_account_from_dict(
-        credentials_dict
+    gc = gspread.service_account(
+        filename="credentials.json"
     )
 
     spreadsheet = gc.open_by_key(
@@ -1857,7 +1842,8 @@ with grafico1:
         st.plotly_chart(
 
             fig,
-            use_container_width=True
+
+            width="stretch"
 
         )
 
@@ -1994,7 +1980,8 @@ with grafico2:
             st.plotly_chart(
 
                 fig,
-                use_container_width=True
+
+                width="stretch"
 
             )
 
@@ -2079,7 +2066,8 @@ with grafico3:
         st.plotly_chart(
 
             fig,
-            use_container_width=True
+
+            width="stretch"
 
         )
 
@@ -2171,7 +2159,8 @@ with grafico4:
         st.plotly_chart(
 
             fig,
-            use_container_width=True
+
+            width="stretch"
 
         )
 
@@ -2264,7 +2253,8 @@ if (
         st.plotly_chart(
 
             fig,
-            use_container_width=True
+
+            width="stretch"
 
         )
 
@@ -2353,7 +2343,9 @@ else:
 st.dataframe(
 
     tabla_para_mostrar,
-    use_container_width=True,
+
+    width="stretch",
+
     hide_index=True,
 
     column_config={
@@ -2446,7 +2438,9 @@ if not df_detalle_filtrado.empty:
     st.dataframe(
 
         detalle_para_mostrar,
-        use_container_width=True,
+
+        width="stretch",
+
         hide_index=True,
 
         column_config={
