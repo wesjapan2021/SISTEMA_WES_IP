@@ -938,7 +938,8 @@ if not df_venta.empty:
     )
 
 
-# Vendedores que no están en la lista reciben color gris
+# Vendedores que no están en la lista reciben color normal
+# (blanco/negro según el tema claro u oscuro de Streamlit)
 
 for _df in (df_ventas, df_venta):
 
@@ -955,7 +956,6 @@ for _df in (df_ventas, df_venta):
                 COLORES_VENDEDOR[_etiqueta] = (
                     COLOR_SIN_VENDEDOR
                 )
-
 
 # ============================================================
 # TÍTULO
