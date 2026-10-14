@@ -1674,832 +1674,92 @@ m2.metric(
     f"{numero_ventas:,}"
 )
 
-# ============================================================
-# PROMEDIO
-# ============================================================
+m3.metric(
+    "💵 TOTAL PAGADO",
+    f"Q {total_pagado:,.2f}"
+)
 
-st.caption(
-    f"Promedio por venta: Q {promedio_venta:,.2f}"
+m4.metric(
+    "📉 SALDO PENDIENTE",
+    f"Q {total_saldo:,.2f}"
+)
+
+m5.metric(
+    "📦 TOTAL PIEZAS",
+    f"{total_piezas:,}"
 )
 
 
 # ============================================================
-# TOTAL DE VENTAS ACTIVAS POR VENDEDOR (TARJETAS DE COLOR)
+# ESTILO AUTOMÁTICO MODO OSCURO / CLARO PARA LAS TABLAS
 # ============================================================
 
-st.markdown("---")
+st.markdown("""
+<style>
+[data-testid="stDataFrame"] div, [data-testid="stTable"] div {
+    color: inherit !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
-st.subheader(
-    "🎨 TOTAL DE VENTAS ACTIVAS POR VENDEDOR"
-)
 
-if (
-    "VENDEDOR ETIQUETA" in df_metricas.columns
-    and
-    "TOTAL DE VENTA" in df_metricas.columns
-):
+# ============================================================
+# TABLA PRINCIPAL: PERIODO DE VENTAS ACTIVAS
+# ============================================================
 
-    resumen_total = (
-        df_metricas
-        .groupby("VENDEDOR ETIQUETA")["TOTAL DE VENTA"]
-        .sum()
+st.markdown("### 📁 PERIODO DE VENTAS ACTIVAS")
+
+df_mostrar_ventas = df_filtrado.copy()
+
+if "FECHA" in df_mostrar_ventas.columns:
+
+    df_mostrar_ventas["FECHA"] = (
+        df_mostrar_ventas["FECHA"]
+        .dt.strftime("%d/%m/%Y")
+        .fillna("")
     )
 
-    if "NO VENTA" in df_metricas.columns:
-
-        resumen_cantidad = (
-            df_metricas[
-                df_metricas["NO VENTA"]
-                .astype(str)
-                .str.strip()
-                != ""
-            ]
-            .groupby("VENDEDOR ETIQUETA")["NO VENTA"]
-            .nunique()
-        )
-
-    else:
-
-        resumen_cantidad = (
-            df_metricas
-            .groupby("VENDEDOR ETIQUETA")
-            .size()
-        )
-
-    etiquetas_resumen = (
-        ETIQUETAS_ORDEN
-        +
-        [
-            e
-            for e in resumen_total.index
-            if e not in ETIQUETAS_ORDEN
-        ]
-    )
-
-    for inicio in range(0, len(etiquetas_resumen), 4):
-
-        grupo = etiquetas_resumen[inicio:inicio + 4]
-
-        columnas_tarjetas = st.columns(4)
-
-        for columna_st, etiqueta in zip(
-            columnas_tarjetas,
-            grupo
-        ):
-
-            color = COLORES_VENDEDOR.get(
-                etiqueta,
-                COLOR_SIN_VENDEDOR
-            )
-
-            texto_color = color_texto_contraste(color)
-
-            monto = float(
-                resumen_total.get(etiqueta, 0)
-            )
-
-            cantidad = int(
-                resumen_cantidad.get(etiqueta, 0)
-            )
-
-            columna_st.markdown(
-
-                f"<div style='background:{color};"
-                f"color:{texto_color};"
-                f"padding:12px;border-radius:10px;"
-                f"margin-bottom:10px;'>"
-                f"<div style='font-size:12px;"
-                f"font-weight:bold;'>{etiqueta}</div>"
-                f"<div style='font-size:20px;"
-                f"font-weight:bold;'>Q {monto:,.2f}</div>"
-                f"<div style='font-size:12px;'>"
-                f"{cantidad:,} ventas</div>"
-                f"</div>",
-
-                unsafe_allow_html=True
-
-            )
-
-
-# ============================================================
-# GRÁFICOS
-# ============================================================
-
-st.markdown("---")
-
-grafico1, grafico2 = st.columns(2)
-
-
-# ============================================================
-# VENTAS POR VENDEDOR
-# ============================================================
-
-with grafico1:
-
-    if (
-        "VENDEDOR ETIQUETA" in df_metricas.columns
-        and
-        "TOTAL DE VENTA" in df_metricas.columns
-    ):
-
-        df_vendedor = (
-
-            df_metricas
-
-            .groupby(
-                "VENDEDOR ETIQUETA",
-                dropna=False
-            )[
-
-                "TOTAL DE VENTA"
-
-            ]
-
-            .sum()
-
-            .reset_index()
-
-            .sort_values(
-                "TOTAL DE VENTA",
-                ascending=False
-            )
-
-        )
-
-        fig = px.bar(
-
-            df_vendedor,
-
-            x="VENDEDOR ETIQUETA",
-
-            y="TOTAL DE VENTA",
-
-            color="VENDEDOR ETIQUETA",
-
-            color_discrete_map=COLORES_VENDEDOR,
-
-            title="👤 VENTAS POR VENDEDOR",
-
-            text_auto=".2f"
-
-        )
-
-        fig.update_layout(
-
-            xaxis_title="VENDEDOR",
-
-            yaxis_title="QUETZALES",
-
-            legend_title_text="VENDEDOR"
-
-        )
-
-        st.plotly_chart(
-
-            fig,
-            use_container_width=True
-
-        )
-
-
-# ============================================================
-# VENTAS POR PRODUCTO
-# ============================================================
-
-with grafico2:
-
-    if (
-        not df_detalle_filtrado.empty
-        and
-        "PRODUCTO" in df_detalle_filtrado.columns
-    ):
-
-        if "SUBTOTAL" in df_detalle_filtrado.columns:
-
-            columna_producto = "SUBTOTAL"
-
-        elif "PRECIO DE VENTA" in df_detalle_filtrado.columns:
-
-            columna_producto = "PRECIO DE VENTA"
-
-        else:
-
-            columna_producto = None
-
-
-        if columna_producto:
-
-            if "VENDEDOR ETIQUETA" in df_detalle_filtrado.columns:
-
-                df_producto = (
-
-                    df_detalle_filtrado
-
-                    .groupby(
-                        [
-                            "PRODUCTO",
-                            "VENDEDOR ETIQUETA"
-                        ]
-                    )[columna_producto]
-
-                    .sum()
-
-                    .reset_index()
-
-                )
-
-                orden_productos = (
-
-                    df_producto
-
-                    .groupby("PRODUCTO")[columna_producto]
-
-                    .sum()
-
-                    .sort_values(ascending=False)
-
-                    .index
-
-                    .tolist()
-
-                )
-
-                fig = px.bar(
-
-                    df_producto,
-
-                    x="PRODUCTO",
-
-                    y=columna_producto,
-
-                    color="VENDEDOR ETIQUETA",
-
-                    color_discrete_map=COLORES_VENDEDOR,
-
-                    category_orders={
-                        "PRODUCTO": orden_productos
-                    },
-
-                    title="📦 VENTAS POR CODIGO",
-
-                    text_auto=".2f"
-
-                )
-
-            else:
-
-                df_producto = (
-
-                    df_detalle_filtrado
-
-                    .groupby(
-                        "PRODUCTO"
-                    )[columna_producto]
-
-                    .sum()
-
-                    .reset_index()
-
-                    .sort_values(
-                        columna_producto,
-                        ascending=False
-                    )
-
-                )
-
-                fig = px.bar(
-
-                    df_producto,
-
-                    x="PRODUCTO",
-
-                    y=columna_producto,
-
-                    title="📦 VENTAS POR CODIGO",
-
-                    text_auto=".2f"
-
-                )
-
-            fig.update_layout(
-
-                xaxis_title="CODIGO",
-
-                yaxis_title="QUETZALES",
-
-                legend_title_text="VENDEDOR"
-
-            )
-
-            st.plotly_chart(
-
-                fig,
-                use_container_width=True
-
-            )
-
-        else:
-
-            st.info(
-                "No existe una columna monetaria válida para el gráfico de productos."
-            )
-
-
-# ============================================================
-# SEGUNDA FILA DE GRÁFICOS
-# ============================================================
-
-grafico3, grafico4 = st.columns(2)
-
-
-# ============================================================
-# TIPO DE PAGO (BARRAS APILADAS POR VENDEDOR)
-# ============================================================
-
-with grafico3:
-
-    if (
-        "TIPO DE PAGO" in df_metricas.columns
-        and
-        "TOTAL DE VENTA" in df_metricas.columns
-        and
-        "VENDEDOR ETIQUETA" in df_metricas.columns
-    ):
-
-        df_pago = (
-
-            df_metricas
-
-            .groupby(
-                [
-                    "TIPO DE PAGO",
-                    "VENDEDOR ETIQUETA"
-                ],
-                dropna=False
-            )[
-
-                "TOTAL DE VENTA"
-
-            ]
-
-            .sum()
-
-            .reset_index()
-
-        )
-
-        fig = px.bar(
-
-            df_pago,
-
-            x="TIPO DE PAGO",
-
-            y="TOTAL DE VENTA",
-
-            color="VENDEDOR ETIQUETA",
-
-            color_discrete_map=COLORES_VENDEDOR,
-
-            title="💳 TIPO DE VENTAS",
-
-            text_auto=".2f"
-
-        )
-
-        fig.update_layout(
-
-            xaxis_title="TIPO DE PAGO",
-
-            yaxis_title="QUETZALES",
-
-            legend_title_text="VENDEDOR"
-
-        )
-
-        st.plotly_chart(
-
-            fig,
-            use_container_width=True
-
-        )
-
-
-# ============================================================
-# EMPRESA
-# ============================================================
-
-with grafico4:
-
-    if (
-        "NOMBRE EMPRESA" in df_metricas.columns
-        and
-        "TOTAL DE VENTA" in df_metricas.columns
-        and
-        "VENDEDOR ETIQUETA" in df_metricas.columns
-    ):
-
-        df_empresa = (
-
-            df_metricas
-
-            .groupby(
-                [
-                    "NOMBRE EMPRESA",
-                    "VENDEDOR ETIQUETA"
-                ],
-                dropna=False
-            )[
-
-                "TOTAL DE VENTA"
-
-            ]
-
-            .sum()
-
-            .reset_index()
-
-        )
-
-        orden_empresas = (
-
-            df_empresa
-
-            .groupby("NOMBRE EMPRESA")["TOTAL DE VENTA"]
-
-            .sum()
-
-            .sort_values(ascending=False)
-
-            .index
-
-            .tolist()
-
-        )
-
-        fig = px.bar(
-
-            df_empresa,
-
-            x="NOMBRE EMPRESA",
-
-            y="TOTAL DE VENTA",
-
-            color="VENDEDOR ETIQUETA",
-
-            color_discrete_map=COLORES_VENDEDOR,
-
-            category_orders={
-                "NOMBRE EMPRESA": orden_empresas
-            },
-
-            title="🏢 VENTAS POR CLIENTE",
-
-            text_auto=".2f"
-
-        )
-
-        fig.update_layout(
-
-            xaxis_title="CLIENTE",
-
-            yaxis_title="QUETZALES",
-
-            legend_title_text="VENDEDOR"
-
-        )
-
-        st.plotly_chart(
-
-            fig,
-            use_container_width=True
-
-        )
-
-
-# ============================================================
-# EVOLUCIÓN DE VENTAS
-# ============================================================
-
-st.markdown("---")
-
-st.subheader(
-    "📈 EVOLUCION DE VENTAS"
-)
-
-
-if (
-    "FECHA" in df_metricas.columns
-    and
-    "TOTAL DE VENTA" in df_metricas.columns
-    and
-    "VENDEDOR ETIQUETA" in df_metricas.columns
-):
-
-    df_tiempo = (
-
-        df_metricas
-
-        .dropna(
-            subset=["FECHA"]
-        )
-
-        .groupby(
-            [
-                "FECHA",
-                "VENDEDOR ETIQUETA"
-            ]
-        )[
-
-            "TOTAL DE VENTA"
-
-        ]
-
-        .sum()
-
-        .reset_index()
-
-        .sort_values(
-            "FECHA"
-        )
-
-    )
-
-    if not df_tiempo.empty:
-
-        fig = px.line(
-
-            df_tiempo,
-
-            x="FECHA",
-
-            y="TOTAL DE VENTA",
-
-            color="VENDEDOR ETIQUETA",
-
-            color_discrete_map=COLORES_VENDEDOR,
-
-            markers=True,
-
-            title="📅 EVOLUCION DE TOTAL DE VENTAS"
-
-        )
-
-        fig.update_layout(
-
-            xaxis_title="FECHA",
-
-            yaxis_title="QUETZALES",
-
-            hovermode="x unified",
-
-            legend_title_text="VENDEDOR"
-
-        )
-
-        fig.update_xaxes(
-            tickformat="%-d/%-m/%Y",
-            hoverformat="%-d/%-m/%Y"
-        )
-
-        st.plotly_chart(
-
-            fig,
-            use_container_width=True
-
-        )
-
-
-# ============================================================
-# TABLA PRINCIPAL
-# ============================================================
-
-st.markdown("---")
-
-st.subheader(
-    "📋 PERIODO DE VENTAS ACTIVAS"
-)
-
-
-columnas_tabla = [
-
-    "NO VENTA",
-    "VENDEDOR",
-    "FECHA",
-    "CLIENTE",
-    "NOMBRE CLIENTE",
-    "NOMBRE EMPRESA",
-    "TOTAL DE VENTA",
-    "PAGO",
-    "SALDO",
-    "TIPO DE PAGO",
-    "STATUS",
-    "FACTURADO",
-    "DTE",
-    "DESTINO",
-    "RUTA"
-
-]
-
-
-columnas_tabla_disponibles = [
-
-    c
-
-    for c in columnas_tabla
-
-    if c in df_metricas.columns
-
-]
-
-
-if columnas_tabla_disponibles:
-
-    df_mostrar = df_metricas[
-        columnas_tabla_disponibles
-    ].copy()
-
-else:
-
-    df_mostrar = df_metricas.copy()
-
-
-# ============================================================
-# PROTECCIÓN FINAL PYARROW
-# ============================================================
-
-for columna in df_mostrar.columns:
-
-    if df_mostrar[columna].dtype == "object":
-
-        df_mostrar[columna] = (
-            df_mostrar[columna]
-            .fillna("")
-            .astype(str)
-        )
-
-
-if "VENDEDOR ETIQUETA" in df_metricas.columns:
-
-    tabla_para_mostrar = estilizar_por_vendedor(
-        df_mostrar,
-        df_metricas["VENDEDOR ETIQUETA"]
-    )
-
-else:
-
-    tabla_para_mostrar = df_mostrar
-
+etiquetas_ventas = {
+    idx: row.get("VENDEDOR ETIQUETA", ETIQUETA_SIN_VENDEDOR)
+    for idx, row in df_mostrar_ventas.iterrows()
+}
 
 st.dataframe(
-
-    tabla_para_mostrar,
+    estilizar_por_vendedor(df_mostrar_ventas, etiquetas_ventas),
     use_container_width=True,
-    hide_index=True,
+    hide_index=True
+)
 
-    column_config={
-        "FECHA": st.column_config.DateColumn(
-            "FECHA",
-            format="D/M/YYYY"
+
+# ============================================================
+# TABLA SECUNDARIA: DETALLE DE VENTAS
+# ============================================================
+
+st.markdown("### 📦 DETALLE DE VENTAS")
+
+df_mostrar_detalle = df_detalle_filtrado.copy()
+
+if not df_mostrar_detalle.empty:
+
+    if "FECHA" in df_mostrar_detalle.columns:
+
+        df_mostrar_detalle["FECHA"] = (
+            df_mostrar_detalle["FECHA"]
+            .dt.strftime("%d/%m/%Y")
+            .fillna("")
         )
+
+    etiquetas_detalle = {
+        idx: row.get("VENDEDOR ETIQUETA", ETIQUETA_SIN_VENDEDOR)
+        for idx, row in df_mostrar_detalle.iterrows()
     }
 
-)
-
-
-# ============================================================
-# DETALLE DE PRODUCTOS
-# ============================================================
-
-st.markdown("---")
-
-st.subheader(
-    "📦 DETALLE DE VENTAS"
-)
-
-
-if not df_detalle_filtrado.empty:
-
-    columnas_detalle = [
-
-        "ID",
-        "NO VENTA",
-        "PRODUCTO",
-        "CANTIDAD",
-        "PRECIO",
-        "PRECIO DE VENTA",
-        "SUBTOTAL",
-        "VENDEDOR",
-        "NOMBRE VENDEDOR",
-        "NOMBRE CLIENTE",
-        "TIPO DE PAGO",
-        "FECHA",
-        "NOMBRE EMPRESA"
-
-    ]
-
-
-    columnas_detalle_disponibles = [
-
-        c
-
-        for c in columnas_detalle
-
-        if c in df_detalle_filtrado.columns
-
-    ]
-
-
-    df_detalle_mostrar = df_detalle_filtrado[
-        columnas_detalle_disponibles
-    ].copy()
-
-
-    # ========================================================
-    # PROTECCIÓN FINAL PYARROW DETALLE
-    # ========================================================
-
-    for columna in df_detalle_mostrar.columns:
-
-        if (
-            df_detalle_mostrar[columna].dtype == "object"
-        ):
-
-            df_detalle_mostrar[columna] = (
-                df_detalle_mostrar[columna]
-                .fillna("")
-                .astype(str)
-            )
-
-
-    if "VENDEDOR ETIQUETA" in df_detalle_filtrado.columns:
-
-        detalle_para_mostrar = estilizar_por_vendedor(
-            df_detalle_mostrar,
-            df_detalle_filtrado["VENDEDOR ETIQUETA"]
-        )
-
-    else:
-
-        detalle_para_mostrar = df_detalle_mostrar
-
-
     st.dataframe(
-
-        detalle_para_mostrar,
+        estilizar_por_vendedor(df_mostrar_detalle, etiquetas_detalle),
         use_container_width=True,
-        hide_index=True,
-
-        column_config={
-            "FECHA": st.column_config.DateColumn(
-                "FECHA",
-                format="D/M/YYYY"
-            )
-        }
-
+        hide_index=True
     )
 
 else:
 
-    st.info(
-        "No hay productos para los filtros seleccionados."
-    )
-
-
-# ============================================================
-# INFORMACIÓN FINAL
-# ============================================================
-
-st.markdown("---")
-
-
-i1, i2, i3 = st.columns(3)
-
-
-with i1:
-
-    st.info(
-
-        f"📊 TOTAL DE VENTAS ACTIVAS: "
-        f"{numero_ventas:,}"
-
-    )
-
-
-with i2:
-
-    st.info(
-
-        f"💰 TOTAL: "
-        f"Q {total_ventas:,.2f}"
-
-    )
-
-
-with i3:
-
-    st.info(
-
-        f"📅 INFORMACION DE REGISTROS: "
-        f"{len(df_metricas):,}"
-
-    )
+    st.info("No hay registros detallados para los filtros seleccionados.")
