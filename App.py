@@ -12,7 +12,7 @@ import unicodedata
 # ============================================================
 
 st.set_page_config(
-    page_title="SISTEMA WES JAPAN IMPO PEREZ",
+    page_title="SISTEMA WES JAPAN",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -962,7 +962,7 @@ for _df in (df_ventas, df_venta):
 # ============================================================
 
 st.title(
-    "📊 SISTEMA DE VENTAS DE WES JAPAN IMPO PEREZ"
+    "📊 SISTEMA WES JAPAN IMPO PEREZ"
 )
 
 st.caption(
@@ -1690,7 +1690,7 @@ st.caption(
 st.markdown("---")
 
 st.subheader(
-    "🎨 TOTAL DE VENTAS ACTIVAS POR VENDEDOR"
+    "🎨 VENTAS POR VENDEDOR"
 )
 
 if (
@@ -2385,6 +2385,7 @@ if not df_detalle_filtrado.empty:
         "NO VENTA",
         "PRODUCTO",
         "CANTIDAD",
+        "DESCRIPCION",
         "PRECIO",
         "PRECIO DE VENTA",
         "SUBTOTAL",
