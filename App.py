@@ -2389,13 +2389,13 @@ if not df_detalle_filtrado.empty:
         "PRECIO",
         "PRECIO DE VENTA",
         "SUBTOTAL",
+        "NOMBRE EMPRESA",
+        "NOMBRE CLIENTE",
+        "FECHA",
         "VENDEDOR",
         "NOMBRE VENDEDOR",
-        "NOMBRE CLIENTE",
-        "TIPO DE PAGO",
-        "FECHA",
-        "NOMBRE EMPRESA"
-
+        "TIPO DE PAGO"   
+        
     ]
 
 
